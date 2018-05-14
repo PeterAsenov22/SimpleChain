@@ -1,0 +1,24 @@
+{
+  "name": "simplechain",
+  "version": "1.0.0",
+  "description": "simple blockchain network",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PeterAsenov22/SimpleChain.git"
+  },
+  "keywords": [
+    "blockchain",
+    "test",
+    "simple"
+  ],
+  "author": "PA",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PeterAsenov22/SimpleChain/issues"
+  },
+  "homepage": "https://github.com/PeterAsenov22/SimpleChain#readme"
+}
