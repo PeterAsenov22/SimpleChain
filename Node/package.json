@@ -18,9 +18,10 @@
   "author": "PA",
   "license": "MIT",
   "dependencies": {
-    "crypto-js": "3.1.9-1",
     "body-parser": "1.18.2",
-    "express": "4.16.3"
+    "crypto-js": "3.1.9-1",
+    "express": "4.16.3",
+    "standard": "11.0.1"
   },
   "bugs": {
     "url": "https://github.com/PeterAsenov22/SimpleChain/issues"
