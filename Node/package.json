@@ -1,10 +1,10 @@
 {
-  "name": "simplechain",
+  "name": "simplechain-node",
   "version": "1.0.0",
-  "description": "simple blockchain network",
+  "description": "simple blockchain network node",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js"
   },
   "repository": {
     "type": "git",
@@ -13,10 +13,15 @@
   "keywords": [
     "blockchain",
     "test",
-    "simple"
+    "node"
   ],
   "author": "PA",
   "license": "MIT",
+  "dependencies": {
+    "crypto-js": "3.1.9-1",
+    "body-parser": "1.18.2",
+    "express": "4.16.3"
+  },
   "bugs": {
     "url": "https://github.com/PeterAsenov22/SimpleChain/issues"
   },
