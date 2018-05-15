@@ -7,38 +7,47 @@ module.exports.Block = class Block {
     this.difficulty = difficulty
     this.previousBlockHash = previousBlockHash
     this.minedBy = minedBy
+
     this.dataHash = dataHash
+    if (!this.dataHash) {
+      this.dataHash = this.calculateDataHash()
+    }
+
     this.nonce = nonce
     this.timestamp = timestamp
+
     this.blockHash = blockHash
-  }
-}
-
-module.exports.calculateDataHash = (block) => {
-  let blockData = {
-    index: block.index,
-    transactions: block.transactions.map(t => Object({
-      from: t.fromAddress,
-      to: t.toAddress,
-      value: t.value,
-      fee: t.fee,
-      dateCreated: t.dateCreated,
-      senderPubKey: t.senderPubKey,
-      transactionDataHash: t.senderSignature,
-      senderSignature: t.senderSignature,
-      minedInBlockIndex: t.minedInBlockIndex,
-      paid: t.paid
-    })),
-    difficulty: block.difficulty,
-    previousBlockHash: block.previousBlockHash,
-    minedBy: block.minedBy
+    if (!this.blockHash) {
+      this.blockHash = this.calculateBlockHash()
+    }
   }
 
-  let dataJson = JSON.stringify(blockData)
-  return CryptoJs.SHA256(dataJson).toString()
-}
+  calculateDataHash () {
+    let blockData = {
+      index: this.index,
+      transactions: this.transactions.map(t => Object({
+        from: t.fromAddress,
+        to: t.toAddress,
+        value: t.value,
+        fee: t.fee,
+        dateCreated: t.dateCreated,
+        senderPubKey: t.senderPubKey,
+        transactionDataHash: t.senderSignature,
+        senderSignature: t.senderSignature,
+        minedInBlockIndex: t.minedInBlockIndex,
+        paid: t.paid
+      })),
+      difficulty: this.difficulty,
+      previousBlockHash: this.prevBlockHash,
+      minedBy: this.minedBy
+    }
 
-module.exports.calculateBlockHash = (block) => {
-  let data = block.dataHash + block.timestamp + block.nonce
-  return CryptoJs.SHA256(data).toString()
+    let dataJson = JSON.stringify(blockData)
+    return CryptoJs.SHA256(dataJson).toString()
+  }
+
+  calculateBlockHash () {
+    let data = this.dataHash + this.timestamp + this.nonce
+    return CryptoJs.SHA256(data).toString()
+  }
 }

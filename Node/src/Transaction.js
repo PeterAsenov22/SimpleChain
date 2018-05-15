@@ -1,7 +1,7 @@
 const CryptoJs = require('crypto-js')
 
-module.exports.Transaction = class Transaction {
-  constructor (senderAddress, recipientAddress, amount, fee, timestamp, senderPubKey, senderSignature, blockIndex, isSuccessful) {
+module.exports = class Transaction {
+  constructor (senderAddress, recipientAddress, amount, fee, timestamp, senderPubKey, senderSignature, transactionHash, blockIndex, isSuccessful) {
     this.senderAddress = senderAddress
     this.recipientAddress = recipientAddress
     this.amount = amount
@@ -9,19 +9,24 @@ module.exports.Transaction = class Transaction {
     this.timestamp = timestamp
     this.senderPubKey = senderPubKey
     this.senderSignature = senderSignature
-    this.hash = Transaction.calculateTransactionHash(this)
+
+    this.transactionHash = transactionHash
+    if (!this.transactionHash) {
+      this.transactionHash = this.calculateTransactionHash()
+    }
+
     this.blockIndex = blockIndex
     this.isSuccessful = isSuccessful
   }
 
-  static calculateTransactionHash (transaction) {
+  calculateTransactionHash () {
     let data = {
-      senderAddress: transaction.senderAddress,
-      recipientAddress: transaction.recipientAddress,
-      amount: transaction.amount,
-      fee: transaction.fee,
-      senderPubKey: transaction.senderPubKey,
-      timestamp: transaction.timestamp
+      senderAddress: this.senderAddress,
+      recipientAddress: this.recipientAddress,
+      amount: this.amount,
+      fee: this.fee,
+      senderPubKey: this.senderPubKey,
+      timestamp: this.timestamp
     }
 
     let dataJson = JSON.stringify(data)
