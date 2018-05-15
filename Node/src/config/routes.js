@@ -5,6 +5,8 @@ module.exports = (app) => {
     res.send('Simple Blockchain Network')
   })
   app.get('/chain', (req, res) => {
-    res.json(Node.chain)
+    let blocks = Node.chain.blocks
+    console.log(blocks)
+    res.json(blocks)
   })
 }
