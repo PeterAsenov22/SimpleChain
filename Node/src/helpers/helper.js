@@ -40,7 +40,7 @@ function generateGenesisBlock () {
 function privateKeyToPublicKey (privateKey) {
   let keyPair = secp256k1.keyFromPrivate(privateKey)
   let isOdd = keyPair.getPublic().getY().isOdd()
-  let publicKey = keyPair.getPublic().getX() + (isOdd ? '1' : '0')
+  let publicKey = keyPair.getPublic().getX().toString(16) + (isOdd ? '1' : '0')
   return publicKey
 }
 
@@ -95,11 +95,7 @@ function isValidTimestamp (date) {
     return false
   }
 
-  let d = Date.parse(date)
-  if (Number.isNaN(d)) {
-    return false
-  }
-
+  let d = new Date(date)
   let year = d.getUTCFullYear()
   return (year >= 2018) && (year <= 2100)
 }
@@ -112,7 +108,7 @@ function isValidSignatureFormat (signature) {
     return false
   }
 
-  return /^[0-9a-f]{1,65}$/.test(signature)
+  return /^[0-9a-f]{1,65}$/.test(signature[0]) && /^[0-9a-f]{1,65}$/.test(signature[1])
 }
 
 function sign (data, privateKey) {
@@ -121,11 +117,19 @@ function sign (data, privateKey) {
   return [signature.r.toString(16), signature.s.toString(16)]
 }
 
-function validateSignature (data, publicKey, signature) {
-  let keyPair = secp256k1.keyFromPublic(publicKey, 'hex')
-  return keyPair.verify(data, {r: signature[0], s: signature[1]})
+function decompressPublicKey (publicKeyCompressed) {
+  let pubKeyX = publicKeyCompressed.substring(0, 64)
+  let pubKeyYOdd = parseInt(publicKeyCompressed.substring(64))
+  let pubKeyPoint = secp256k1.curve.pointFromX(pubKeyX, pubKeyYOdd)
+  return pubKeyPoint
 }
 
+function validateSignature (data, publicKey, signature) {
+  let publicKeyPoint = decompressPublicKey(publicKey)
+  let keyPair = secp256k1.keyPair({pub: publicKeyPoint})
+  let valid = keyPair.verify(data, {r: signature[0], s: signature[1]})
+  return valid
+}
 
 module.exports = {
   generateGenesisBlock: generateGenesisBlock,
