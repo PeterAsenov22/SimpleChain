@@ -13,6 +13,26 @@ module.exports = class Blockchain {
     return this.pendingTransactions
   }
 
+  getConfirmedTransactions () {
+    let transactions = []
+    for (let block of this.blocks) {
+      transactions.push.apply(transactions, block.transactions);
+    }
+    return transactions
+  }
+
+  getTransactionByHash (hash) {
+    let allTransactions =
+      this.getConfirmedTransactions()
+        .concat(this.pendingTransactions)
+
+    let tran = allTransactions.filter(t => t.transactionHash === hash)
+    if (tran.length > 0) {
+      return tran[0]
+    }
+    return undefined
+  }
+
   addNewTransaction (transactionData) {
     if (!helper.isValidAddress(transactionData.senderAddress)) {
       return {errorMsg: 'Invalid sender address: ' + transactionData.senderAddress}
@@ -23,25 +43,27 @@ module.exports = class Blockchain {
     if (!helper.isValidPublicKey(transactionData.senderPubKey)) {
       return {errorMsg: 'Invalid public key: ' + transactionData.senderPubKey}
     }
-    // if (!helper.publicKeyToAddress(transactionData.senderPubKey) !== transactionData.senderAddress) {
-    //  return {errorMsg: 'The public key should match the sender address'}
-    // }
+    if (helper.publicKeyToAddress(transactionData.senderPubKey) !== transactionData.senderAddress) {
+      return {errorMsg: 'The public key should match the sender address'}
+    }
     if (!helper.isValidTransferAmount(transactionData.amount)) {
       return {errorMsg: 'Invalid transfer amount: ' + transactionData.amount}
     }
     if (!helper.isValidFee(transactionData.fee)) {
       return {errorMsg: 'Invalid transaction fee: ' + transactionData.fee}
     }
-    // if (!helper.isValidTimestamp(transactionData.timestamp)) {
-    //  return {errorMsg: 'Invalid date: ' + transactionData.timestamp}
-    // }
-    // if (!helper.isValidSignatureFormat(transactionData.senderSignature)) {
-    //  return {errorMsg: 'Invalid or missing signature. Expected signature format: ["hexnum", "hexnum"]'}
-    // }
-
-    // if (!helper.validateSignature(transactionData.transactionHash, transactionData.senderPubKey, transactionData.senderSignature)) {
-    //  return {errorMsg: 'Invalid signature: ' + transactionData.senderSignature}
-    // }
+    if (!helper.isValidTimestamp(transactionData.timestamp)) {
+      return {errorMsg: 'Invalid date: ' + transactionData.timestamp}
+    }
+    if (!helper.isValidSignatureFormat(transactionData.senderSignature)) {
+      return {errorMsg: 'Invalid or missing signature. Expected signature format: ["hexnum", "hexnum"]'}
+    }
+    if (!helper.validateSignature(transactionData.transactionHash, transactionData.senderPubKey, transactionData.senderSignature)) {
+      return {errorMsg: 'Invalid signature: ' + transactionData.senderSignature}
+    }
+    if (this.getTransactionByHash(transactionData.transactionHash)) {
+      return {errorMsg: 'Duplicated transaction: ' + transactionData.transactionHash}
+    }
 
     let tran = new Transaction(
       transactionData.senderAddress,
@@ -52,11 +74,6 @@ module.exports = class Blockchain {
       transactionData.senderPubKey,
       transactionData.senderSignature
     )
-
-    // Check for duplicated transactions (to avoid "replay attack")
-    // if (this.findTransactionByDataHash(tran.transactionDataHash)) {
-    //  return {errorMsg: 'Duplicated transaction: ' + tran.transactionDataHash}
-    // }
 
     this.pendingTransactions.push(tran)
 
