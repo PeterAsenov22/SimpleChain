@@ -27,7 +27,7 @@ module.exports = class Blockchain {
   getConfirmedTransactions () {
     let transactions = []
     for (let block of this.blocks) {
-      transactions.push.apply(transactions, block.transactions);
+      transactions.push.apply(transactions, block.transactions)
     }
     return transactions
   }
@@ -42,6 +42,66 @@ module.exports = class Blockchain {
       return tran[0]
     }
     return undefined
+  }
+
+  getAllTransactions () {
+    let transactions = this.getConfirmedTransactions()
+    transactions.push.apply(transactions, this.pendingTransactions)
+    return transactions
+  }
+
+  getTransactionHistory (address) {
+    let transactions = this.getAllTransactions()
+    let transactionsByAddress = transactions.filter(t => t.senderAddress === address || t.recipientAddress === address)
+    return transactionsByAddress
+  }
+
+  getAccountBalance (address) {
+    let balance = {
+      safeBalance: 0,
+      confirmedBalance: 0,
+      pendingBalance: 0
+    }
+
+    let transactions = this.getTransactionHistory(address)
+
+    for (let tran of transactions) {
+      let confirmsCount = 0
+      if (typeof (tran.blockIndex) === 'number') {
+        confirmsCount = this.blocks.length - tran.blockIndex + 1
+      }
+      if (tran.senderAddress === address) {
+        balance.pendingBalance -= tran.fee
+        if (confirmsCount === 0 || tran.isSuccessful) {
+          balance.pendingBalance -= tran.amount
+        }
+        if (confirmsCount >= 1) {
+          balance.confirmedBalance -= tran.amount
+          if (tran.isSuccessful) {
+            balance.confirmedBalance -= tran.amount
+          }
+        }
+        if (confirmsCount >= config.safeConfirmCount) {
+          balance.safeBalance -= tran.amount
+          if (tran.isSuccessful) {
+            balance.safeBalance -= tran.amount
+          }
+        }
+      }
+      if (tran.recipientAddress === address) {
+        if (confirmsCount === 0 || tran.isSuccessful) {
+          balance.pendingBalance += tran.amount
+        }
+        if (confirmsCount >= 1 && tran.transferSuccessful) {
+          balance.confirmedBalance += tran.amount
+        }
+        if (confirmsCount >= config.safeConfirmCount && tran.transferSuccessful) {
+          balance.safeBalance += tran.amount
+        }
+      }
+    }
+
+    return balance
   }
 
   addNewTransaction (transactionData) {

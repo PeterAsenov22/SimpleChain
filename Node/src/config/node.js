@@ -8,6 +8,7 @@ const nullSignature = [
 const networkCirculatingSupply = 1000000000000
 const minTransactionFee = 10
 const blockReward = 5000000
+const safeConfirmCount = 6
 
 module.exports = {
   faucetPrivateKey: faucetPrivateKey,
@@ -16,5 +17,6 @@ module.exports = {
   nullSignature: nullSignature,
   networkCirculatingSupply: networkCirculatingSupply,
   minTransactionFee: minTransactionFee,
-  blockReward: blockReward
+  blockReward: blockReward,
+  safeConfirmCount: safeConfirmCount
 }
