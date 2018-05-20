@@ -1,5 +1,3 @@
-const Block = require('./Block')
-const Transaction = require('./Transaction')
 const Helper = require('./helpers/helper')
 const Blockchain = require('./Blockchain')
 const difficulty = 5

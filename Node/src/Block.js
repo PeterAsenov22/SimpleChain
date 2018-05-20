@@ -1,6 +1,6 @@
 const CryptoJs = require('crypto-js')
 
-module.exports.Block = class Block {
+module.exports = class Block {
   constructor (index, transactions, difficulty, previousBlockHash, minedBy, dataHash, nonce, timestamp, blockHash) {
     this.index = index
     this.transactions = transactions
@@ -10,7 +10,7 @@ module.exports.Block = class Block {
 
     this.dataHash = dataHash
     if (!this.dataHash) {
-      this.dataHash = this.calculateDataHash()
+      this.calculateDataHash()
     }
 
     this.nonce = nonce
@@ -18,7 +18,7 @@ module.exports.Block = class Block {
 
     this.blockHash = blockHash
     if (!this.blockHash) {
-      this.blockHash = this.calculateBlockHash()
+      this.calculateBlockHash()
     }
   }
 
@@ -43,11 +43,11 @@ module.exports.Block = class Block {
     }
 
     let dataJson = JSON.stringify(blockData)
-    return CryptoJs.SHA256(dataJson).toString()
+    this.dataHash = CryptoJs.SHA256(dataJson).toString()
   }
 
   calculateBlockHash () {
     let data = this.dataHash + this.timestamp + this.nonce
-    return CryptoJs.SHA256(data).toString()
+    this.blockHash = CryptoJs.SHA256(data).toString()
   }
 }

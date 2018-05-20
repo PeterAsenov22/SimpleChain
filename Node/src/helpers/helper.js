@@ -1,7 +1,7 @@
 const EllipticCurve = require('elliptic').ec
 const secp256k1 = new EllipticCurve('secp256k1')
 const CryptoJs = require('crypto-js')
-const Block = require('../Block').Block
+const Block = require('../Block')
 const Transaction = require('../Transaction')
 const nodeConfig = require('../config/node')
 

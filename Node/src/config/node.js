@@ -7,6 +7,7 @@ const nullSignature = [
 ]
 const networkCirculatingSupply = 1000000000000
 const minTransactionFee = 10
+const blockReward = 5000000
 
 module.exports = {
   faucetPrivateKey: faucetPrivateKey,
@@ -14,5 +15,6 @@ module.exports = {
   nullPubKey: nullPubKey,
   nullSignature: nullSignature,
   networkCirculatingSupply: networkCirculatingSupply,
-  minTransactionFee: minTransactionFee
+  minTransactionFee: minTransactionFee,
+  blockReward: blockReward
 }

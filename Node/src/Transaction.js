@@ -12,7 +12,7 @@ module.exports = class Transaction {
 
     this.transactionHash = transactionHash
     if (!this.transactionHash) {
-      this.transactionHash = this.calculateTransactionHash()
+      this.calculateTransactionHash()
     }
 
     this.blockIndex = blockIndex
@@ -30,6 +30,6 @@ module.exports = class Transaction {
     }
 
     let dataJson = JSON.stringify(data)
-    return CryptoJs.SHA256(dataJson).toString()
+    this.transactionHash = CryptoJs.SHA256(dataJson).toString()
   }
 }

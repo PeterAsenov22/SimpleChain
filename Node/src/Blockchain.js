@@ -1,5 +1,7 @@
 const helper = require('./helpers/helper')
+const config = require('./config/node')
 const Transaction = require('./Transaction')
+const Block = require('./Block')
 
 module.exports = class Blockchain {
   constructor (genesisBlock, difficulty) {
@@ -11,6 +13,15 @@ module.exports = class Blockchain {
 
   getPendingTransactions () {
     return this.pendingTransactions
+  }
+
+  removePendingTransactions (transactionsToRemove) {
+    let tranHashesToRemove = new Set()
+    for (let tran of transactionsToRemove) {
+      tranHashesToRemove.add(tran.transactionHash)
+    }
+    this.pendingTransactions = this.pendingTransactions.filter(
+      t => !tranHashesToRemove.has(t.transactionHash))
   }
 
   getConfirmedTransactions () {
@@ -78,5 +89,119 @@ module.exports = class Blockchain {
     this.pendingTransactions.push(tran)
 
     return tran
+  }
+
+  calculateConfirmedBalances () {
+    let transactions = this.getConfirmedTransactions()
+    let balances = {}
+
+    for (let tran of transactions) {
+      balances[tran.senderAddress] = balances[tran.senderAddress] || 0
+      balances[tran.recipientAddress] = balances[tran.recipientAddress] || 0
+      balances[tran.senderAddress] -= tran.fee
+
+      if (tran.isSuccessful) {
+        balances[tran.senderAddress] -= tran.amount
+        balances[tran.recipientAddress] += tran.amount
+      }
+    }
+
+    return balances
+  }
+
+  getMiningJob (minerAddress) {
+    let nextBlockIndex = this.blocks.length + 1
+
+    let rewardTran = new Transaction(
+      config.nullAddress,
+      minerAddress,
+      config.blockReward,
+      0,
+      new Date().toISOString,
+      config.nullPubKey,
+      config.nullSignature,
+      undefined,
+      nextBlockIndex,
+      true
+    )
+
+    let balances = this.calculateConfirmedBalances()
+    let transactions = JSON.parse(JSON.stringify(this.getPendingTransactions()))
+    transactions.sort((a, b) => b.fee - a.fee)
+
+    for (let tran of transactions) {
+      balances[tran.senderAddress] = balances[tran.senderAddress] || 0
+      balances[tran.recipientAddress] = balances[tran.recipientAddress] || 0
+
+      if (balances[tran.senderAddress] >= tran.fee) {
+        tran.blockIndex = nextBlockIndex
+
+        balances[tran.senderAddress] -= tran.fee
+        rewardTran.amount += tran.fee
+
+        if (balances[tran.senderAddress] >= tran.amount) {
+          balances[tran.senderAddress] -= tran.amount
+          balances[tran.recipientAddress] += tran.amount
+          tran.isSuccessful = true
+        } else {
+          tran.isSuccessful = false
+        }
+      } else {
+        this.removePendingTransactions([tran])
+        transactions = transactions.filter(t => t !== tran)
+      }
+    }
+
+    rewardTran.calculateTransactionHash()
+    transactions.unshift(rewardTran)
+
+    let prevBlockHash = this.blocks[this.blocks.length - 1].blockHash
+    let nextBlockCandidate = new Block(
+      nextBlockIndex,
+      transactions,
+      this.difficulty,
+      prevBlockHash,
+      minerAddress
+    )
+
+    this.miningJobs[nextBlockCandidate.dataHash] = nextBlockCandidate
+    return nextBlockCandidate
+  }
+
+  submitMinedBlock (dataHash, timestamp, nonce, blockHash) {
+    let newBlock = this.miningJobs[dataHash]
+    if (newBlock === undefined) {
+      return { errorMsg: 'Block not found or already mined' }
+    }
+
+    newBlock.timestamp = timestamp
+    newBlock.nonce = nonce
+    newBlock.calculateBlockHash()
+
+    if (newBlock.blockHash !== blockHash) {
+      return { errorMsg: 'Block hash is incorrectly calculated' }
+    }
+
+    if (newBlock.blockHash.substring(0, newBlock.difficulty) !== '0'.repeat(this.difficulty)) {
+      return { errorMsg: 'The calculated block hash does not match the block difficulty' }
+    }
+
+    return this.extendChain(newBlock)
+  }
+
+  addBlockToChain (newBlock) {
+    if (this.blocks.length + 1 !== newBlock.index) {
+      return { errorMsg: 'The submitted block was already mined by someone else' }
+    }
+
+    let prevBlock = this.blocks[this.blocks.length - 1]
+    if (prevBlock.blockHash !== newBlock.previousBlockHash) {
+      return { errorMsg: 'Incorrect prevBlockHash' }
+    }
+
+    this.blocks.push(newBlock)
+    this.miningJobs = {}
+    this.removePendingTransactions(newBlock.transactions)
+    return newBlock
   }
 }
