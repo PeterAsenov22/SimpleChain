@@ -10,7 +10,7 @@ let app = express()
 require('./config/express')(app)
 require('./config/routes')(app)
 
-initializeNode()
+initializeNode(serverHost, serverPort, url)
 
 app.listen(serverPort, () => {
   console.log(`Server started at ${url}`)

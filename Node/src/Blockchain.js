@@ -57,13 +57,17 @@ module.exports = class Blockchain {
   }
 
   getAccountBalance (address) {
+    let transactions = this.getTransactionHistory(address)
+    if (transactions.length === 0) {
+      return { errorMsg: 'No transactions' }
+    }
+
     let balance = {
       safeBalance: 0,
       confirmedBalance: 0,
       pendingBalance: 0
     }
 
-    let transactions = this.getTransactionHistory(address)
 
     for (let tran of transactions) {
       let confirmsCount = 0
@@ -170,7 +174,7 @@ module.exports = class Blockchain {
   }
 
   getMiningJob (minerAddress) {
-    let nextBlockIndex = this.blocks.length + 1
+    let nextBlockIndex = this.blocks.length
 
     let rewardTran = new Transaction(
       config.nullAddress,
@@ -246,11 +250,11 @@ module.exports = class Blockchain {
       return { errorMsg: 'The calculated block hash does not match the block difficulty' }
     }
 
-    return this.extendChain(newBlock)
+    return this.addBlockToChain(newBlock)
   }
 
   addBlockToChain (newBlock) {
-    if (this.blocks.length + 1 !== newBlock.index) {
+    if (this.blocks.length !== newBlock.index) {
       return { errorMsg: 'The submitted block was already mined by someone else' }
     }
 
@@ -263,5 +267,25 @@ module.exports = class Blockchain {
     this.miningJobs = {}
     this.removePendingTransactions(newBlock.transactions)
     return newBlock
+  }
+
+  mineNextBlock (minerAddress, currentDifficulty) {
+    // let oldDifficulty = this.difficulty
+    this.difficulty = currentDifficulty
+    let nextBlock = this.getMiningJob(minerAddress)
+    // this.difficulty = oldDifficulty
+
+    // Mine the next block
+    nextBlock.dateCreated = (new Date()).toISOString()
+    nextBlock.nonce = 0
+    do {
+      nextBlock.nonce++
+      nextBlock.calculateBlockHash()
+    } while (!helper.isValidDifficulty(nextBlock.blockHash, currentDifficulty))
+
+    // Submit the mined block
+    let result = this.submitMinedBlock(nextBlock.dataHash,
+      nextBlock.timestamp, nextBlock.nonce, nextBlock.blockHash)
+    return result
   }
 }

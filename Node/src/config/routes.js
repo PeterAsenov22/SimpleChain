@@ -73,4 +73,13 @@ module.exports = (app) => {
       res.status(HttpStatus.BAD_REQUEST).json(sendResult)
     }
   })
+  app.get('/debug/mine/:minerAddress/:difficulty', (req, res) => {
+    let minerAddress = req.params.minerAddress
+    let difficulty = parseInt(req.params.difficulty) || 3
+    let result = node.chain.mineNextBlock(minerAddress, difficulty)
+    if (result.errorMsg) {
+      res.status(HttpStatus.BAD_REQUEST)
+    }
+    res.json(result)
+  })
 }

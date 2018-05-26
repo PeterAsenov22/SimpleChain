@@ -111,6 +111,16 @@ function isValidSignatureFormat (signature) {
   return /^[0-9a-f]{1,65}$/.test(signature[0]) && /^[0-9a-f]{1,65}$/.test(signature[1])
 }
 
+function isValidDifficulty (blockHash, difficulty) {
+  for (let i = 0; i < difficulty; i++) {
+    if (blockHash[i] !== '0') {
+      return false
+    }
+  }
+
+  return true
+}
+
 function sign (data, privateKey) {
   let keyPair = secp256k1.keyFromPrivate(privateKey)
   let signature = keyPair.sign(data)
@@ -143,5 +153,6 @@ module.exports = {
   isValidSignatureFormat: isValidSignatureFormat,
   isValidTimestamp: isValidTimestamp,
   sign: sign,
-  validateSignature: validateSignature
+  validateSignature: validateSignature,
+  isValidDifficulty: isValidDifficulty
 }
