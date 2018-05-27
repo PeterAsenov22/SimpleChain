@@ -270,10 +270,8 @@ module.exports = class Blockchain {
   }
 
   mineNextBlock (minerAddress, currentDifficulty) {
-    // let oldDifficulty = this.difficulty
     this.difficulty = currentDifficulty
     let nextBlock = this.getMiningJob(minerAddress)
-    // this.difficulty = oldDifficulty
 
     // Mine the next block
     nextBlock.dateCreated = (new Date()).toISOString()
@@ -287,5 +285,20 @@ module.exports = class Blockchain {
     let result = this.submitMinedBlock(nextBlock.dataHash,
       nextBlock.timestamp, nextBlock.nonce, nextBlock.blockHash)
     return result
+  }
+
+  processLongerChain (blocks) {
+    // TODO: validate the chain (it should be longer, should hold valid blocks, each block should hold valid transactions, etc.
+    this.blocks = blocks
+    this.removePendingTransactions(this.getAllTransactions())
+    console.log('Chain sync successful. Block count = ' + blocks.length)
+  }
+
+  calculateCumulativeDifficulty () {
+    let difficulty = 0
+    for (let block of this.blocks) {
+      difficulty += block.difficulty
+    }
+    return difficulty
   }
 }

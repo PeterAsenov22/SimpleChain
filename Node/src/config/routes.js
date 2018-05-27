@@ -17,6 +17,7 @@ module.exports = (app) => {
       'nodeUrl': node.selfUrl,
       'peers': node.peers.length,
       'difficulty': node.chain.difficulty,
+      'cumulativeDifficulty': node.chain.calculateCumulativeDifficulty(),
       'blocks': node.chain.blocks.length,
       'confirmedTransactions': node.chain.getConfirmedTransactions().length,
       'pendingTransactions': node.chain.pendingTransactions.length
@@ -81,5 +82,8 @@ module.exports = (app) => {
       res.status(HttpStatus.BAD_REQUEST)
     }
     res.json(result)
+  })
+  app.get('/peers', (req, res) => {
+    res.json(node.peers)
   })
 }
