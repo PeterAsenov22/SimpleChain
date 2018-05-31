@@ -110,6 +110,7 @@ module.exports = (app) => {
       res.status(HttpStatus.BAD_REQUEST)
     }
     res.json(result)
+    node.notifyPeersAboutNewBlock()
   })
   app.get('/peers', (req, res) => {
     res.json(node.peers)

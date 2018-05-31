@@ -1,7 +1,9 @@
+require('dotenv').config()
 const initializeNode = require('./Node').initializeNode
 
-const serverHost = process.env.HTTP_HOST || 'localhost'
-const serverPort = process.env.HTTP_PORT || 5555
+const serverHost = process.env.HOST || 'localhost'
+const serverPort = process.env.PORT || 5555
+
 const url = `http://${serverHost}:${serverPort}`
 const express = require('express')
 
