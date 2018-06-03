@@ -86,7 +86,7 @@ module.exports = (app) => {
       difficulty: blockCandidate.difficulty,
       expectedReward: blockCandidate.transactions[0].amount,
       rewardAddress: blockCandidate.transactions[0].recipientAddress,
-      blockDataHash: blockCandidate.dataHash
+      dataHash: blockCandidate.dataHash
     })
   })
   app.post('/mining/submit-mined-block', (req, res) => {
