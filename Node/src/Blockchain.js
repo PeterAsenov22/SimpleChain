@@ -51,16 +51,23 @@ module.exports = class Blockchain {
   }
 
   getTransactionHistory (address) {
+    if (!helper.isValidAddress(address)) {
+      return { errorMsg: 'Invalid address' }
+    }
+
     let transactions = this.getAllTransactions()
     let transactionsByAddress = transactions.filter(t => t.senderAddress === address || t.recipientAddress === address)
+    transactionsByAddress.sort((a, b) =>
+      a.timestamp.localeCompare(b.timestamp))
     return transactionsByAddress
   }
 
   getAccountBalance (address) {
-    let transactions = this.getTransactionHistory(address)
-    if (transactions.length === 0) {
-      return { errorMsg: 'No transactions' }
+    if (!helper.isValidAddress(address)) {
+      return { errorMsg: 'Invalid address' }
     }
+
+    let transactions = this.getTransactionHistory(address)
 
     let balance = {
       safeBalance: 0,
@@ -290,7 +297,7 @@ module.exports = class Blockchain {
   processLongerChain (blocks) {
     // TODO: validate the chain (it should be longer, should hold valid blocks, each block should hold valid transactions, etc.
     this.blocks = blocks
-    this.removePendingTransactions(this.getAllTransactions())
+    this.removePendingTransactions(this.getConfirmedTransactions())
     console.log('Chain sync successful. Block count = ' + blocks.length)
   }
 
